@@ -22,9 +22,9 @@ defmodule Styler.Style.ModuleDirectives do
     * `Credo.Check.Consistency.MultiAliasImportRequireUse` (force expansion)
     * `Credo.Check.Readability.AliasOrder` (we sort `__MODULE__`, which credo doesn't)
     * `Credo.Check.Readability.ModuleDoc` (adds `@moduledoc false` if missing. includes `*.exs` files)
-    * `Credo.Check.Readability.MultiAlias`
     * `Credo.Check.Readability.StrictModuleLayout` (see section below for details)
-    * `Credo.Check.Readability.UnnecessaryAliasExpansion`
+    * ~~`Credo.Check.Readability.MultiAlias`~~ extracted to `Styler.Style.Readability.MultiAlias`
+    * ~~`Credo.Check.Readability.UnnecessaryAliasExpansion`~~ extracted to `Styler.Style.Readability.MultiAlias`
 
   ## Strict Layout
 
