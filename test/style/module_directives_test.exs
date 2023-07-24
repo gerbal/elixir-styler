@@ -14,24 +14,31 @@ defmodule Styler.Style.ModuleDirectivesTest do
 
   describe "defmodule features" do
     test "handles module with no directives" do
-      assert_style("""
-      defmodule Test do
-        def foo, do: :ok
-      end
-      """)
+      assert_style(
+        Styler.Style.ModuleDirectives,
+        """
+        defmodule Test do
+          def foo, do: :ok
+        end
+        """
+      )
     end
 
     test "handles dynamically generated modules" do
-      assert_style("""
-      Enum.each(testing_list, fn test_item ->
-        defmodule test_item do
-        end
-      end)
-      """)
+      assert_style(
+        Styler.Style.ModuleDirectives,
+        """
+        Enum.each(testing_list, fn test_item ->
+          defmodule test_item do
+          end
+        end)
+        """
+      )
     end
 
     test "module with single child" do
       assert_style(
+        Styler.Style.ModuleDirectives,
         """
         defmodule ATest do
           alias Foo.{A, B}
@@ -48,6 +55,7 @@ defmodule Styler.Style.ModuleDirectivesTest do
 
     test "adds moduledoc" do
       assert_style(
+        Styler.Style.ModuleDirectives,
         """
         defmodule A do
         end
@@ -113,21 +121,28 @@ defmodule Styler.Style.ModuleDirectivesTest do
     end
 
     test "skips keyword defmodules" do
-      assert_style("defmodule Foo, do: use(Bar)")
+      assert_style(
+        Styler.Style.ModuleDirectives,
+        "defmodule Foo, do: use(Bar)"
+      )
     end
 
     test "doesn't add moduledoc to modules of specific names" do
       for verboten <- ~w(Test Mixfile Controller Endpoint Repo Router Socket View HTML JSON) do
-        assert_style("""
-        defmodule A.B.C#{verboten} do
-          @shortdoc "Don't change me!"
-        end
-        """)
+        assert_style(
+          Styler.Style.ModuleDirectives,
+          """
+          defmodule A.B.C#{verboten} do
+            @shortdoc "Don't change me!"
+          end
+          """
+        )
       end
     end
 
     test "groups directives in order" do
       assert_style(
+        Styler.Style.ModuleDirectives,
         """
         defmodule Foo do
           @behaviour Lawful
@@ -212,11 +227,14 @@ defmodule Styler.Style.ModuleDirectivesTest do
 
   describe "strange parents!" do
     test "regression: doesn't trigger on variables" do
-      assert_style("def foo(alias), do: Foo.bar(alias)")
+      assert_style(
+        Styler.Style.ModuleDirectives,
+        "def foo(alias), do: Foo.bar(alias)"
+      )
     end
 
     test "anon function" do
-      assert_style("fn -> alias A.{C, B} end", """
+      assert_style(Styler.Style.ModuleDirectives, "fn -> alias A.{C, B} end", """
       fn ->
         alias A.B
         alias A.C
@@ -226,6 +244,7 @@ defmodule Styler.Style.ModuleDirectivesTest do
 
     test "quote do with one child" do
       assert_style(
+        Styler.Style.ModuleDirectives,
         """
         quote do
           alias A.{C, B}
@@ -241,18 +260,22 @@ defmodule Styler.Style.ModuleDirectivesTest do
     end
 
     test "quote do with multiple children" do
-      assert_style("""
-      quote do
-        import A
-        import B
-      end
-      """)
+      assert_style(
+        Styler.Style.ModuleDirectives,
+        """
+        quote do
+          import A
+          import B
+        end
+        """
+      )
     end
   end
 
   describe "directive sort/dedupe/expansion" do
     test "isn't fooled by function names" do
       assert_style(
+        Styler.Style.ModuleDirectives,
         """
         def import(foo) do
           import B
@@ -270,12 +293,16 @@ defmodule Styler.Style.ModuleDirectivesTest do
     end
 
     test "handles a lonely lonely directive" do
-      assert_style("import Foo")
+      assert_style(
+        Styler.Style.ModuleDirectives,
+        "import Foo"
+      )
     end
 
     test "sorts, dedupes & expands alias/require/import while respecting groups" do
       for d <- ~w(alias require import) do
         assert_style(
+          Styler.Style.ModuleDirectives,
           """
           #{d} D
           #{d} A.{B}
@@ -303,6 +330,7 @@ defmodule Styler.Style.ModuleDirectivesTest do
 
     test "expands __MODULE__" do
       assert_style(
+        Styler.Style.ModuleDirectives,
         """
         alias __MODULE__.{B.D, A}
         """,
@@ -315,6 +343,7 @@ defmodule Styler.Style.ModuleDirectivesTest do
 
     test "expands use but does not sort it" do
       assert_style(
+        Styler.Style.ModuleDirectives,
         """
         use D
         use A
@@ -337,6 +366,7 @@ defmodule Styler.Style.ModuleDirectivesTest do
 
     test "interwoven directives w/o the context of a module" do
       assert_style(
+        Styler.Style.ModuleDirectives,
         """
         @type foo :: :ok
         alias D
@@ -363,18 +393,22 @@ defmodule Styler.Style.ModuleDirectivesTest do
     end
 
     test "respects as" do
-      assert_style("""
-      alias Foo.Asset
-      alias Foo.Project.Loaders, as: ProjectLoaders
-      alias Foo.ProjectDevice.Loaders, as: ProjectDeviceLoaders
-      alias Foo.User.Loaders
-      """)
+      assert_style(
+        Styler.Style.ModuleDirectives,
+        """
+        alias Foo.Asset
+        alias Foo.Project.Loaders, as: ProjectLoaders
+        alias Foo.ProjectDevice.Loaders, as: ProjectDeviceLoaders
+        alias Foo.User.Loaders
+        """
+      )
     end
   end
 
   describe "with comments..." do
     test "moving aliases up through non-directives doesn't move comments up" do
       assert_style(
+        Styler.Style.ModuleDirectives,
         """
         defmodule Foo do
           # mdf

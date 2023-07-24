@@ -14,6 +14,7 @@ defmodule Styler.Style.DefsTest do
   describe "run" do
     test "function with do keyword" do
       assert_style(
+        Styler.Style.Defs,
         """
         # Top comment
         def save(
@@ -34,34 +35,44 @@ defmodule Styler.Style.DefsTest do
     end
 
     test "bodyless function with spec" do
-      assert_style("""
-      @spec original_object(atom()) :: atom()
-      def original_object(object)
-      """)
+      assert_style(
+        Styler.Style.Defs,
+        """
+        @spec original_object(atom()) :: atom()
+        def original_object(object)
+        """
+      )
     end
 
     test "block function body doesn't get newlined" do
-      assert_style("""
-      # Here's a comment
-      def some_function(%{id: id, type: type, processed_at: processed_at} = file, params, _)
-          when type == :file and is_nil(processed_at) do
-        with {:ok, results} <- FileProcessor.process(file) do
-          # This comment could make sense
-          {:ok, post_process_the_results_somehow(results)}
+      assert_style(
+        Styler.Style.Defs,
+        """
+        # Here's a comment
+        def some_function(%{id: id, type: type, processed_at: processed_at} = file, params, _)
+            when type == :file and is_nil(processed_at) do
+          with {:ok, results} <- FileProcessor.process(file) do
+            # This comment could make sense
+            {:ok, post_process_the_results_somehow(results)}
+          end
         end
-      end
-      """)
+        """
+      )
     end
 
     test "kwl function body doesn't get newlined" do
-      assert_style("""
-      def is_expired_timestamp?(timestamp) when is_integer(timestamp),
-        do: Timex.from_unix(timestamp, :second) <= Timex.shift(DateTime.utc_now(), minutes: 1)
-      """)
+      assert_style(
+        Styler.Style.Defs,
+        """
+        def is_expired_timestamp?(timestamp) when is_integer(timestamp),
+          do: Timex.from_unix(timestamp, :second) <= Timex.shift(DateTime.utc_now(), minutes: 1)
+        """
+      )
     end
 
     test "function with do block" do
       assert_style(
+        Styler.Style.Defs,
         """
         def save(
                %Socket{assigns: %{user: user, live_action: :new}} = initial_socket,
@@ -81,6 +92,7 @@ defmodule Styler.Style.DefsTest do
 
     test "no body" do
       assert_style(
+        Styler.Style.Defs,
         """
         # Top comment
         def no_body(
@@ -105,6 +117,7 @@ defmodule Styler.Style.DefsTest do
 
     test "when clause w kwl do" do
       assert_style(
+        Styler.Style.Defs,
         """
         def foo(%{
           bar: baz
@@ -127,6 +140,7 @@ defmodule Styler.Style.DefsTest do
 
     test "keyword do with a list" do
       assert_style(
+        Styler.Style.Defs,
         """
         def foo,
           do: [
@@ -143,6 +157,7 @@ defmodule Styler.Style.DefsTest do
 
     test "rewrites subsequent definitions" do
       assert_style(
+        Styler.Style.Defs,
         """
         def foo(), do: :ok
 
@@ -153,7 +168,7 @@ defmodule Styler.Style.DefsTest do
         ), do: :ok
         """,
         """
-        def foo, do: :ok
+        def foo(), do: :ok
 
         # Long long is too long
         def foo(too, long), do: :ok
@@ -163,6 +178,7 @@ defmodule Styler.Style.DefsTest do
 
     test "when clause with block do" do
       assert_style(
+        Styler.Style.Defs,
         """
         # Foo takes a bar
         def foo(%{
@@ -193,26 +209,32 @@ defmodule Styler.Style.DefsTest do
     end
 
     test "Doesn't move stuff around if it would make the line too long" do
-      assert_style("""
-      @doc "this is a doc"
-      # And also a comment
-      def wow_this_function_name_is_super_long(it_also, has_a, ton_of, arguments),
-        do: "this is going to end up making the line too long if we inline it"
+      assert_style(
+        Styler.Style.Defs,
+        """
+        @doc "this is a doc"
+        # And also a comment
+        def wow_this_function_name_is_super_long(it_also, has_a, ton_of, arguments),
+          do: "this is going to end up making the line too long if we inline it"
 
-      @doc "this is another function"
-      # And it also has a comment
-      def this_one_fits_on_one_line, do: :ok
-      """)
+        @doc "this is another function"
+        # And it also has a comment
+        def this_one_fits_on_one_line, do: :ok
+        """
+      )
     end
 
     test "Doesn't collapse pipe chains in a def do ... end" do
-      assert_style("""
-      def foo(some_list) do
-        some_list
-        |> Enum.reject(&is_nil/1)
-        |> Enum.map(&transform/1)
-      end
-      """)
+      assert_style(
+        Styler.Style.Defs,
+        """
+        def foo(some_list) do
+          some_list
+          |> Enum.reject(&is_nil/1)
+          |> Enum.map(&transform/1)
+        end
+        """
+      )
     end
   end
 end

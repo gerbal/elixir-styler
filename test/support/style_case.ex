@@ -16,16 +16,16 @@ defmodule Styler.StyleCase do
 
   using do
     quote do
-      import unquote(__MODULE__), only: [assert_style: 1, assert_style: 2, style: 1]
+      import unquote(__MODULE__), only: [assert_style: 2, assert_style: 3, style: 2]
     end
   end
 
-  defmacro assert_style(before, expected \\ nil) do
+  defmacro assert_style(styles, before, expected \\ nil) do
     expected = expected || before
 
-    quote bind_quoted: [before: before, expected: expected] do
+    quote bind_quoted: [styles: styles, before: before, expected: expected], location: :keep do
       expected = String.trim(expected)
-      {styled_ast, styled, styled_comments} = style(before)
+      {styled_ast, styled, styled_comments} = style(styles, before)
 
       if styled != expected and ExUnit.configuration()[:trace] do
         IO.puts("\n======Given=============\n")
@@ -49,9 +49,9 @@ defmodule Styler.StyleCase do
     end
   end
 
-  def style(code) do
+  def style(styles, code) do
     {ast, comments} = Styler.string_to_quoted_with_comments(code)
-    {styled_ast, comments} = Styler.style({ast, comments}, "testfile", on_error: :raise)
+    {styled_ast, comments} = Styler.style({ast, comments}, List.wrap(styles), "testfile", on_error: :raise)
 
     try do
       styled_code = styled_ast |> Styler.quoted_to_string(comments) |> String.trim_trailing("\n")

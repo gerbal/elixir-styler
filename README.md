@@ -51,9 +51,19 @@ See `mix help style` for more.
 
 ### Configuration
 
-There isn't any! This is intentional.
+This Project supports minimal configuration. You can configure which styles you would like run on `mix format` by adding a `styles` key to your `.formatter.exs` file.
 
-Styler's @adobe's internal Style Guide Enforcer - allowing exceptions to the styles goes against that ethos. Happily, it's open source and thus yours to do with as you will =)
+```elixir
+# .formatter.exs
+[
+  styles: [
+    Styler.Style.ModuleDirectives,
+    Styler.Style.Pipes,
+    Styler.Style.SingleNode,
+    Styler.Style.Defs
+  ]
+]
+```
 
 ## Styles
 

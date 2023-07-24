@@ -13,17 +13,21 @@ defmodule Styler.Style.PipesTest do
 
   describe "big picture" do
     test "doesn't modify valid pipe" do
-      assert_style("""
-      a()
-      |> b()
-      |> c()
+      assert_style(
+        Styler.Style.Pipes,
+        """
+        a()
+        |> b()
+        |> c()
 
-      a |> b() |> c()
-      """)
+        a |> b() |> c()
+        """
+      )
     end
 
     test "extracts >0 arity functions" do
       assert_style(
+        Styler.Style.Pipes,
         """
         M.f(a, b)
         |> g()
@@ -40,6 +44,7 @@ defmodule Styler.Style.PipesTest do
 
     test "fixes nested pipes" do
       assert_style(
+        Styler.Style.Pipes,
         """
         a
         |> e(fn x ->
@@ -79,6 +84,7 @@ defmodule Styler.Style.PipesTest do
   describe "block pipe starts" do
     test "variable assignment of a block" do
       assert_style(
+        Styler.Style.Pipes,
         """
         x =
           case y do
@@ -103,6 +109,7 @@ defmodule Styler.Style.PipesTest do
 
     test "rewrites fors" do
       assert_style(
+        Styler.Style.Pipes,
         """
         for(a <- as, do: a)
         |> bar()
@@ -120,6 +127,7 @@ defmodule Styler.Style.PipesTest do
 
     test "rewrites unless" do
       assert_style(
+        Styler.Style.Pipes,
         """
         unless foo do
           bar
@@ -139,6 +147,7 @@ defmodule Styler.Style.PipesTest do
 
     test "rewrites with" do
       assert_style(
+        Styler.Style.Pipes,
         """
         with({:ok, value} <- foo(), do: value)
         |> bar()
@@ -156,6 +165,7 @@ defmodule Styler.Style.PipesTest do
 
     test "rewrites conds" do
       assert_style(
+        Styler.Style.Pipes,
         """
         cond do
           x -> :ok
@@ -180,6 +190,7 @@ defmodule Styler.Style.PipesTest do
 
     test "rewrites case" do
       assert_style(
+        Styler.Style.Pipes,
         """
         case x do
           x -> x
@@ -197,6 +208,7 @@ defmodule Styler.Style.PipesTest do
       )
 
       assert_style(
+        Styler.Style.Pipes,
         """
         def foo do
           case x do
@@ -220,6 +232,7 @@ defmodule Styler.Style.PipesTest do
 
     test "rewrites if" do
       assert_style(
+        Styler.Style.Pipes,
         """
         def foo do
           if true do
@@ -247,18 +260,19 @@ defmodule Styler.Style.PipesTest do
 
   describe "single pipe issues" do
     test "allows unquote single pipes" do
-      assert_style("foo |> unquote(bar)")
+      assert_style(Styler.Style.Pipes, "foo |> unquote(bar)")
     end
 
     test "fixes simple single pipes" do
-      assert_style("b(a) |> c()", "a |> b() |> c()")
-      assert_style("a |> f()", "f(a)")
-      assert_style("x |> bar", "bar(x)")
-      assert_style("def a, do: b |> c()", "def a, do: c(b)")
+      assert_style(Styler.Style.Pipes, "b(a) |> c()", "a |> b() |> c()")
+      assert_style(Styler.Style.Pipes, "a |> f()", "f(a)")
+      assert_style(Styler.Style.Pipes, "x |> bar", "bar(x)")
+      assert_style(Styler.Style.Pipes, "def a, do: b |> c()", "def a, do: c(b)")
     end
 
     test "keeps invocation on a single line" do
       assert_style(
+        Styler.Style.Pipes,
         """
         foo
         |> bar(baz, bop, boom)
@@ -269,6 +283,7 @@ defmodule Styler.Style.PipesTest do
       )
 
       assert_style(
+        Styler.Style.Pipes,
         """
         foo
         |> bar(baz)
@@ -279,6 +294,7 @@ defmodule Styler.Style.PipesTest do
       )
 
       assert_style(
+        Styler.Style.Pipes,
         """
         def halt(exec, halt_message) do
           %__MODULE__{exec | halted: true}
@@ -293,6 +309,7 @@ defmodule Styler.Style.PipesTest do
       )
 
       assert_style(
+        Styler.Style.Pipes,
         """
         if true do
           false
@@ -315,67 +332,74 @@ defmodule Styler.Style.PipesTest do
 
   describe "valid pipe starts & unpiping" do
     test "writes brackets for unpiped kwl" do
-      assert_style("foo(kwl: :arg) |> bar()", "[kwl: :arg] |> foo() |> bar()")
-      assert_style("%{a: foo(a: :b, c: :d) |> bar()}", "%{a: [a: :b, c: :d] |> foo() |> bar()}")
-      assert_style("%{a: foo([a: :b, c: :d]) |> bar()}", "%{a: [a: :b, c: :d] |> foo() |> bar()}")
+      assert_style(Styler.Style.Pipes, "foo(kwl: :arg) |> bar()", "[kwl: :arg] |> foo() |> bar()")
+      assert_style(Styler.Style.Pipes, "%{a: foo(a: :b, c: :d) |> bar()}", "%{a: [a: :b, c: :d] |> foo() |> bar()}")
+      assert_style(Styler.Style.Pipes, "%{a: foo([a: :b, c: :d]) |> bar()}", "%{a: [a: :b, c: :d] |> foo() |> bar()}")
     end
 
     test "allows fn" do
-      assert_style("""
-      fn
-        :ok -> :ok
-        :error -> :error
-      end
-      |> b()
-      |> c()
-      """)
+      assert_style(
+        Styler.Style.Pipes,
+        """
+        fn
+          :ok -> :ok
+          :error -> :error
+        end
+        |> b()
+        |> c()
+        """
+      )
     end
 
     test "recognizes infix ops as valid pipe starts" do
-      assert_style("(bar() == 1) |> foo()", "foo(bar() == 1)")
-      assert_style("(x in 1..100) |> foo()", "foo(x in 1..100)")
+      assert_style(Styler.Style.Pipes, "(bar() == 1) |> foo()", "foo(bar() == 1)")
+      assert_style(Styler.Style.Pipes, "(x in 1..100) |> foo()", "foo(x in 1..100)")
     end
 
     test "0 arity is just fine!" do
-      assert_style("foo() |> bar() |> baz()")
-      assert_style("Module.foo() |> bar() |> baz()")
+      assert_style(Styler.Style.Pipes, "foo() |> bar() |> baz()")
+      assert_style(Styler.Style.Pipes, "Module.foo() |> bar() |> baz()")
     end
 
     test "ecto funtimes" do
       for from <- ~w(from Query.from Ecto.Query.from) do
-        assert_style("""
-        #{from}(foo in Bar, where: foo.bool)
-        |> some_query_helper()
-        |> Repo.all()
-        """)
+        assert_style(
+          Styler.Style.Pipes,
+          """
+          #{from}(foo in Bar, where: foo.bool)
+          |> some_query_helper()
+          |> Repo.all()
+          """
+        )
       end
 
-      assert_style("^foo |> Ecto.Query.bar() |> Ecto.Query.baz()")
+      assert_style(Styler.Style.Pipes, "^foo |> Ecto.Query.bar() |> Ecto.Query.baz()")
     end
   end
 
   describe "simple rewrites" do
     test "rewrites anon fun def ahd invoke to use then" do
-      assert_style("a |> (& &1).()", "then(a, & &1)")
-      assert_style("a |> (& {&1, &2}).(b)", "(&{&1, &2}).(a, b)")
-      assert_style("a |> (& &1).() |> c", "a |> then(& &1) |> c()")
+      assert_style(Styler.Style.Pipes, "a |> (& &1).()", "then(a, & &1)")
+      assert_style(Styler.Style.Pipes, "a |> (& {&1, &2}).(b)", "(&{&1, &2}).(a, b)")
+      assert_style(Styler.Style.Pipes, "a |> (& &1).() |> c", "a |> then(& &1) |> c()")
 
-      assert_style("a |> (fn x, y -> {x, y} end).() |> c", "a |> then(fn x, y -> {x, y} end) |> c()")
-      assert_style("a |> (fn x -> x end).()", "then(a, fn x -> x end)")
-      assert_style("a |> (fn x -> x end).() |> c", "a |> then(fn x -> x end) |> c()")
+      assert_style(Styler.Style.Pipes, "a |> (fn x, y -> {x, y} end).() |> c", "a |> then(fn x, y -> {x, y} end) |> c()")
+      assert_style(Styler.Style.Pipes, "a |> (fn x -> x end).()", "then(a, fn x -> x end)")
+      assert_style(Styler.Style.Pipes, "a |> (fn x -> x end).() |> c", "a |> then(fn x -> x end) |> c()")
     end
 
     test "adds parens to 1-arity pipes" do
-      assert_style("a |> b |> c", "a |> b() |> c()")
+      assert_style(Styler.Style.Pipes, "a |> b |> c", "a |> b() |> c()")
     end
 
     test "reverse/concat" do
-      assert_style("a |> Enum.reverse() |> Enum.concat()")
-      assert_style("a |> Enum.reverse(bar) |> Enum.concat()")
-      assert_style("a |> Enum.reverse(bar) |> Enum.concat(foo)")
-      assert_style("a |> Enum.reverse() |> Enum.concat(foo)", "Enum.reverse(a, foo)")
+      assert_style(Styler.Style.Pipes, "a |> Enum.reverse() |> Enum.concat()")
+      assert_style(Styler.Style.Pipes, "a |> Enum.reverse(bar) |> Enum.concat()")
+      assert_style(Styler.Style.Pipes, "a |> Enum.reverse(bar) |> Enum.concat(foo)")
+      assert_style(Styler.Style.Pipes, "a |> Enum.reverse() |> Enum.concat(foo)", "Enum.reverse(a, foo)")
 
       assert_style(
+        Styler.Style.Pipes,
         """
         a
         |> Enum.reverse()
@@ -392,6 +416,7 @@ defmodule Styler.Style.PipesTest do
 
     test "filter/count" do
       assert_style(
+        Styler.Style.Pipes,
         """
         a
         |> Enum.filter(fun)
@@ -406,6 +431,7 @@ defmodule Styler.Style.PipesTest do
       )
 
       assert_style(
+        Styler.Style.Pipes,
         """
         a
         |> Enum.filter(fun)
@@ -417,6 +443,7 @@ defmodule Styler.Style.PipesTest do
       )
 
       assert_style(
+        Styler.Style.Pipes,
         """
         if true do
           []
@@ -441,6 +468,7 @@ defmodule Styler.Style.PipesTest do
 
     test "map/join" do
       assert_style(
+        Styler.Style.Pipes,
         """
         a
         |> Enum.map(b)
@@ -454,6 +482,7 @@ defmodule Styler.Style.PipesTest do
 
     test "map/into" do
       assert_style(
+        Styler.Style.Pipes,
         """
         a
         |> Enum.map(b)
@@ -463,6 +492,7 @@ defmodule Styler.Style.PipesTest do
       )
 
       assert_style(
+        Styler.Style.Pipes,
         """
         a
         |> Enum.map(b)
@@ -472,6 +502,7 @@ defmodule Styler.Style.PipesTest do
       )
 
       assert_style(
+        Styler.Style.Pipes,
         """
         a
         |> Enum.map(b)
@@ -481,6 +512,7 @@ defmodule Styler.Style.PipesTest do
       )
 
       assert_style(
+        Styler.Style.Pipes,
         """
         a
         |> Enum.map(b)
@@ -490,6 +522,7 @@ defmodule Styler.Style.PipesTest do
       )
 
       assert_style(
+        Styler.Style.Pipes,
         """
         a_multiline_mapper
         |> Enum.map(fn %{gets: shrunk, down: to_a_more_reasonable} ->
@@ -508,13 +541,14 @@ defmodule Styler.Style.PipesTest do
 
       # Regression: something about the meta wants newlines when it's in a def
       assert_style(
+        Styler.Style.Pipes,
         """
         def foo() do
           filename_map = foo |> Enum.map(&{&1.filename, true}) |> Enum.into(%{})
         end
         """,
         """
-        def foo do
+        def foo() do
           filename_map = Map.new(foo, &{&1.filename, true})
         end
         """
@@ -522,15 +556,16 @@ defmodule Styler.Style.PipesTest do
     end
 
     test "into a new map" do
-      assert_style("a |> Enum.into(foo) |> b()")
-      assert_style("a |> Enum.into(%{}) |> b()", "a |> Map.new() |> b()")
-      assert_style("a |> Enum.into(Map.new) |> b()", "a |> Map.new() |> b()")
+      assert_style(Styler.Style.Pipes, "a |> Enum.into(foo) |> b()")
+      assert_style(Styler.Style.Pipes, "a |> Enum.into(%{}) |> b()", "a |> Map.new() |> b()")
+      assert_style(Styler.Style.Pipes, "a |> Enum.into(Map.new) |> b()", "a |> Map.new() |> b()")
 
-      assert_style("a |> Enum.into(foo, mapper) |> b()")
-      assert_style("a |> Enum.into(%{}, mapper) |> b()", "a |> Map.new(mapper) |> b()")
-      assert_style("a |> Enum.into(Map.new, mapper) |> b()", "a |> Map.new(mapper) |> b()")
+      assert_style(Styler.Style.Pipes, "a |> Enum.into(foo, mapper) |> b()")
+      assert_style(Styler.Style.Pipes, "a |> Enum.into(%{}, mapper) |> b()", "a |> Map.new(mapper) |> b()")
+      assert_style(Styler.Style.Pipes, "a |> Enum.into(Map.new, mapper) |> b()", "a |> Map.new(mapper) |> b()")
 
       assert_style(
+        Styler.Style.Pipes,
         """
         a
         |> Enum.map(b)
@@ -544,6 +579,7 @@ defmodule Styler.Style.PipesTest do
       )
 
       assert_style(
+        Styler.Style.Pipes,
         """
         a
         |> Enum.map(b)

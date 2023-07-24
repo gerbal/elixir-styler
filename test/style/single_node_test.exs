@@ -12,21 +12,22 @@ defmodule Styler.Style.SingleNodeTest do
   use Styler.StyleCase, async: true
 
   test "charlist literals: rewrites single quote charlists to ~c" do
-    assert_style("'foo'", ~s|~c"foo"|)
-    assert_style(~s|'"'|, ~s|~c"\\""|)
+    assert_style(Styler.Style.SingleNode, "'foo'", ~s|~c"foo"|)
+    assert_style(Styler.Style.SingleNode, ~s|'"'|, ~s|~c"\\""|)
   end
 
   test "Logger.warn to Logger.warning" do
-    assert_style("Logger.warn(foo)", "Logger.warning(foo)")
-    assert_style("Logger.warn(foo, bar)", "Logger.warning(foo, bar)")
+    assert_style(Styler.Style.SingleNode, "Logger.warn(foo)", "Logger.warning(foo)")
+    assert_style(Styler.Style.SingleNode, "Logger.warn(foo, bar)", "Logger.warning(foo, bar)")
   end
 
   describe "def / defp" do
     test "0-arity functions have parens removed" do
-      assert_style("def foo(), do: :ok", "def foo, do: :ok")
-      assert_style("defp foo(), do: :ok", "defp foo, do: :ok")
+      assert_style(Styler.Style.SingleNode, "def foo(), do: :ok", "def foo, do: :ok")
+      assert_style(Styler.Style.SingleNode, "defp foo(), do: :ok", "defp foo, do: :ok")
 
       assert_style(
+        Styler.Style.SingleNode,
         """
         def foo() do
         :ok
@@ -40,6 +41,7 @@ defmodule Styler.Style.SingleNodeTest do
       )
 
       assert_style(
+        Styler.Style.SingleNode,
         """
         defp foo() do
         :ok
@@ -53,12 +55,16 @@ defmodule Styler.Style.SingleNodeTest do
       )
 
       # Regression: be wary of invocations with extra parens from metaprogramming
-      assert_style("def metaprogramming(foo)(), do: bar")
+      assert_style(
+        Styler.Style.SingleNode,
+        "def metaprogramming(foo)(), do: bar"
+      )
     end
 
     test "prefers implicit try" do
       for def_style <- ~w(def defp) do
         assert_style(
+          Styler.Style.SingleNode,
           """
           #{def_style} foo() do
             try do
@@ -92,23 +98,27 @@ defmodule Styler.Style.SingleNodeTest do
     end
 
     test "doesnt rewrite when there are other things in the body" do
-      assert_style("""
-      def foo do
-        try do
-          :ok
-        rescue
-          exception -> :excepted
-        end
+      assert_style(
+        Styler.Style.SingleNode,
+        """
+        def foo do
+          try do
+            :ok
+          rescue
+            exception -> :excepted
+          end
 
-        :after_try
-      end
-      """)
+          :after_try
+        end
+        """
+      )
     end
   end
 
   describe "RHS pattern matching" do
     test "case statements" do
       assert_style(
+        Styler.Style.SingleNode,
         """
         case foo do
           bar = %{baz: baz? = true} -> :baz?
@@ -125,10 +135,11 @@ defmodule Styler.Style.SingleNodeTest do
     end
 
     test "removes a double-var assignment when one var is _" do
-      assert_style("def foo(_ = bar), do: bar", "def foo(bar), do: bar")
-      assert_style("def foo(bar = _), do: bar", "def foo(bar), do: bar")
+      assert_style(Styler.Style.SingleNode, "def foo(_ = bar), do: bar", "def foo(bar), do: bar")
+      assert_style(Styler.Style.SingleNode, "def foo(bar = _), do: bar", "def foo(bar), do: bar")
 
       assert_style(
+        Styler.Style.SingleNode,
         """
         case foo do
           bar = _ -> :ok
@@ -142,6 +153,7 @@ defmodule Styler.Style.SingleNodeTest do
       )
 
       assert_style(
+        Styler.Style.SingleNode,
         """
         case foo do
           _ = bar -> :ok
@@ -157,6 +169,7 @@ defmodule Styler.Style.SingleNodeTest do
 
     test "defs" do
       assert_style(
+        Styler.Style.SingleNode,
         "def foo(bar = %{baz: baz? = true}, opts = [[a = %{}] | _]), do: :ok",
         "def foo(%{baz: true = baz?} = bar, [[%{} = a] | _] = opts), do: :ok"
       )
@@ -164,66 +177,109 @@ defmodule Styler.Style.SingleNodeTest do
 
     test "anon funs" do
       assert_style(
+        Styler.Style.SingleNode,
         "fn bar = %{baz: baz? = true}, opts = [[a = %{}] | _] -> :ok end",
         "fn %{baz: true = baz?} = bar, [[%{} = a] | _] = opts -> :ok end"
       )
     end
 
     test "leaves those poor case statements alone!" do
-      assert_style("""
-      cond do
-        foo = Repo.get(Bar, 1) -> foo
-        x == y -> :kaboom?
-        true -> :else
-      end
-      """)
+      assert_style(
+        Styler.Style.SingleNode,
+        """
+        cond do
+          foo = Repo.get(Bar, 1) -> foo
+          x == y -> :kaboom?
+          true -> :else
+        end
+        """
+      )
     end
   end
 
   describe "numbers" do
     test "styles floats and integers with >4 digits" do
-      assert_style("10000", "10_000")
-      assert_style("1_0_0_0_0", "10_000")
-      assert_style("-543213", "-543_213")
-      assert_style("123456789", "123_456_789")
-      assert_style("55333.22", "55_333.22")
-      assert_style("-123456728.0001", "-123_456_728.0001")
+      assert_style(Styler.Style.SingleNode, "10000", "10_000")
+      assert_style(Styler.Style.SingleNode, "1_0_0_0_0", "10_000")
+      assert_style(Styler.Style.SingleNode, "-543213", "-543_213")
+      assert_style(Styler.Style.SingleNode, "123456789", "123_456_789")
+      assert_style(Styler.Style.SingleNode, "55333.22", "55_333.22")
+      assert_style(Styler.Style.SingleNode, "-123456728.0001", "-123_456_728.0001")
     end
 
     test "stays away from small numbers, strings and science" do
-      assert_style("1234")
-      assert_style("9999")
-      assert_style(~s|"10000"|)
-      assert_style("0xFFFF")
-      assert_style("0x123456")
-      assert_style("0b1111_1111_1111_1111")
-      assert_style("0o777_7777")
+      assert_style(
+        Styler.Style.SingleNode,
+        "1234"
+      )
+
+      assert_style(
+        Styler.Style.SingleNode,
+        "9999"
+      )
+
+      assert_style(
+        Styler.Style.SingleNode,
+        ~s|"10000"|
+      )
+
+      assert_style(
+        Styler.Style.SingleNode,
+        "0xFFFF"
+      )
+
+      assert_style(
+        Styler.Style.SingleNode,
+        "0x123456"
+      )
+
+      assert_style(
+        Styler.Style.SingleNode,
+        "0b1111_1111_1111_1111"
+      )
+
+      assert_style(
+        Styler.Style.SingleNode,
+        "0o777_7777"
+      )
     end
   end
 
   describe "Enum.into and Map.new" do
     test "into a new map" do
-      assert_style("Enum.into(a, foo)")
-      assert_style("Enum.into(a, foo, mapper)")
+      assert_style(
+        Styler.Style.SingleNode,
+        "Enum.into(a, foo)"
+      )
 
-      assert_style("Enum.into(a, %{})", "Map.new(a)")
-      assert_style("Enum.into(a, Map.new)", "Map.new(a)")
+      assert_style(
+        Styler.Style.SingleNode,
+        "Enum.into(a, foo, mapper)"
+      )
 
-      assert_style("Enum.into(a, %{}, mapper)", "Map.new(a, mapper)")
-      assert_style("Enum.into(a, Map.new, mapper)", "Map.new(a, mapper)")
+      assert_style(Styler.Style.SingleNode, "Enum.into(a, %{})", "Map.new(a)")
+      assert_style(Styler.Style.SingleNode, "Enum.into(a, Map.new)", "Map.new(a)")
+
+      assert_style(Styler.Style.SingleNode, "Enum.into(a, %{}, mapper)", "Map.new(a, mapper)")
+      assert_style(Styler.Style.SingleNode, "Enum.into(a, Map.new, mapper)", "Map.new(a, mapper)")
     end
   end
 
   describe "Enum.reverse/1 and ++" do
     test "optimizes into `Enum.reverse/2`" do
-      assert_style("Enum.reverse(foo) ++ bar", "Enum.reverse(foo, bar)")
-      assert_style("Enum.reverse(foo, bar) ++ bar")
+      assert_style(Styler.Style.SingleNode, "Enum.reverse(foo) ++ bar", "Enum.reverse(foo, bar)")
+
+      assert_style(
+        Styler.Style.SingleNode,
+        "Enum.reverse(foo, bar) ++ bar"
+      )
     end
   end
 
   describe "case to if" do
     test "rewrites case true false to if else" do
       assert_style(
+        Styler.Style.SingleNode,
         """
         case foo do
           true -> :ok
@@ -240,6 +296,7 @@ defmodule Styler.Style.SingleNodeTest do
       )
 
       assert_style(
+        Styler.Style.SingleNode,
         """
         case foo do
           true -> :ok
@@ -256,6 +313,7 @@ defmodule Styler.Style.SingleNodeTest do
       )
 
       assert_style(
+        Styler.Style.SingleNode,
         """
         case foo do
           false -> :error
@@ -272,6 +330,7 @@ defmodule Styler.Style.SingleNodeTest do
       )
 
       assert_style(
+        Styler.Style.SingleNode,
         """
         case foo do
           true -> :ok
@@ -286,6 +345,7 @@ defmodule Styler.Style.SingleNodeTest do
       )
 
       assert_style(
+        Styler.Style.SingleNode,
         """
         case foo do
           true -> :ok
@@ -300,6 +360,7 @@ defmodule Styler.Style.SingleNodeTest do
       )
 
       assert_style(
+        Styler.Style.SingleNode,
         """
         case foo do
           true -> :ok

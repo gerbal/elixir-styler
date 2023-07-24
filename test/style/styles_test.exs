@@ -17,6 +17,7 @@ defmodule Styler.Style.StylesTest do
   describe "pipes + defs" do
     test "pipes doesnt abuse meta and break defs" do
       assert_style(
+        [Styler.Style.Pipes, Styler.Style.Defs, Styler.Style.SingleNode],
         """
         foo
         |> bar(fn baz ->
