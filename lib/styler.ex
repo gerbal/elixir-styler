@@ -21,7 +21,7 @@ defmodule Styler do
     Styler.Style.ModuleDirectives,
     Styler.Style.Pipes,
     Styler.Style.SingleNode,
-    Styler.Style.Defs
+    Styler.Style.CompactFunctions
   ]
 
   @doc false

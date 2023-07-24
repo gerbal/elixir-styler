@@ -8,7 +8,7 @@
 # OF ANY KIND, either express or implied. See the License for the specific language
 # governing permissions and limitations under the License.
 
-defmodule Styler.Style.Defs do
+defmodule Styler.Style.CompactFunctions do
   @moduledoc """
   Styles function heads so that they're as small as possible.
 

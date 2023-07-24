@@ -8,13 +8,13 @@
 # OF ANY KIND, either express or implied. See the License for the specific language
 # governing permissions and limitations under the License.
 
-defmodule Styler.Style.DefsTest do
+defmodule Styler.Style.CompactFunctionsTest do
   use Styler.StyleCase, async: true
 
   describe "run" do
     test "function with do keyword" do
       assert_style(
-        Styler.Style.Defs,
+        Styler.Style.CompactFunctions,
         """
         # Top comment
         def save(
@@ -36,7 +36,7 @@ defmodule Styler.Style.DefsTest do
 
     test "bodyless function with spec" do
       assert_style(
-        Styler.Style.Defs,
+        Styler.Style.CompactFunctions,
         """
         @spec original_object(atom()) :: atom()
         def original_object(object)
@@ -46,7 +46,7 @@ defmodule Styler.Style.DefsTest do
 
     test "block function body doesn't get newlined" do
       assert_style(
-        Styler.Style.Defs,
+        Styler.Style.CompactFunctions,
         """
         # Here's a comment
         def some_function(%{id: id, type: type, processed_at: processed_at} = file, params, _)
@@ -62,7 +62,7 @@ defmodule Styler.Style.DefsTest do
 
     test "kwl function body doesn't get newlined" do
       assert_style(
-        Styler.Style.Defs,
+        Styler.Style.CompactFunctions,
         """
         def is_expired_timestamp?(timestamp) when is_integer(timestamp),
           do: Timex.from_unix(timestamp, :second) <= Timex.shift(DateTime.utc_now(), minutes: 1)
@@ -72,7 +72,7 @@ defmodule Styler.Style.DefsTest do
 
     test "function with do block" do
       assert_style(
-        Styler.Style.Defs,
+        Styler.Style.CompactFunctions,
         """
         def save(
                %Socket{assigns: %{user: user, live_action: :new}} = initial_socket,
@@ -92,7 +92,7 @@ defmodule Styler.Style.DefsTest do
 
     test "no body" do
       assert_style(
-        Styler.Style.Defs,
+        Styler.Style.CompactFunctions,
         """
         # Top comment
         def no_body(
@@ -117,7 +117,7 @@ defmodule Styler.Style.DefsTest do
 
     test "when clause w kwl do" do
       assert_style(
-        Styler.Style.Defs,
+        Styler.Style.CompactFunctions,
         """
         def foo(%{
           bar: baz
@@ -140,7 +140,7 @@ defmodule Styler.Style.DefsTest do
 
     test "keyword do with a list" do
       assert_style(
-        Styler.Style.Defs,
+        Styler.Style.CompactFunctions,
         """
         def foo,
           do: [
@@ -157,7 +157,7 @@ defmodule Styler.Style.DefsTest do
 
     test "rewrites subsequent definitions" do
       assert_style(
-        Styler.Style.Defs,
+        Styler.Style.CompactFunctions,
         """
         def foo(), do: :ok
 
@@ -178,7 +178,7 @@ defmodule Styler.Style.DefsTest do
 
     test "when clause with block do" do
       assert_style(
-        Styler.Style.Defs,
+        Styler.Style.CompactFunctions,
         """
         # Foo takes a bar
         def foo(%{
@@ -210,7 +210,7 @@ defmodule Styler.Style.DefsTest do
 
     test "Doesn't move stuff around if it would make the line too long" do
       assert_style(
-        Styler.Style.Defs,
+        Styler.Style.CompactFunctions,
         """
         @doc "this is a doc"
         # And also a comment
@@ -226,7 +226,7 @@ defmodule Styler.Style.DefsTest do
 
     test "Doesn't collapse pipe chains in a def do ... end" do
       assert_style(
-        Styler.Style.Defs,
+        Styler.Style.CompactFunctions,
         """
         def foo(some_list) do
           some_list
