@@ -95,6 +95,28 @@ defmodule Styler.Style.SingleNode do
   defp style({{:., dm, [{:__aliases__, am, [:Logger]}, :warn]}, funm, args}),
     do: {{:., dm, [{:__aliases__, am, [:Logger]}, :warning]}, funm, args}
 
+  # Timex.today() => DateTime.utc_today()
+  defp style({{:., dm, [{:__aliases__, am, [:Timex]}, :today]}, funm, []}),
+    do: {{:., dm, [{:__aliases__, am, [:Date]}, :utc_today]}, funm, []}
+
+  # Timex.now() => DateTime.utc_now()
+  defp style({{:., dm, [{:__aliases__, am, [:Timex]}, :now]}, funm, []}),
+    do: {{:., dm, [{:__aliases__, am, [:DateTime]}, :utc_now]}, funm, []}
+
+  # Timex.now("Europe/London") => DateTime.now!()
+  defp style({{:., dm, [{:__aliases__, am, [:Timex]}, :now]}, funm, [tz]}),
+    do: {{:., dm, [{:__aliases__, am, [:DateTime]}, :now!]}, funm, [tz]}
+
+  if Version.match?(System.version(), ">= 1.15.0-dev") do
+    # {DateTime,NaiveDateTime,Time,Date}.compare(a, b) == :lt -> {DateTime,NaiveDateTime,Time,Date}.before?(a, b)
+    # {DateTime,NaiveDateTime,Time,Date}.compare(a, b) == :gt -> {DateTime,NaiveDateTime,Time,Date}.after?(a, b)
+    defp style({:==, _, [{{:., dm, [{:__aliases__, am, [mod]}, :compare]}, funm, args}, {:__block__, _, [result]}]})
+         when mod in ~w[DateTime NaiveDateTime Time Date]a and result in [:lt, :gt] do
+      fun = if result == :lt, do: :before?, else: :after?
+      {{:., dm, [{:__aliases__, am, [mod]}, fun]}, funm, args}
+    end
+  end
+
   # Remove parens from 0 arity funs (Credo.Check.Readability.ParenthesesOnZeroArityDefs)
   defp style({def, dm, [{fun, funm, []} | rest]}) when def in ~w(def defp)a and is_atom(fun),
     do: style({def, dm, [{fun, Keyword.delete(funm, :closing), nil} | rest]})

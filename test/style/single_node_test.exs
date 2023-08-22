@@ -21,6 +21,32 @@ defmodule Styler.Style.SingleNodeTest do
     assert_style(Styler.Style.SingleNode, "Logger.warn(foo, bar)", "Logger.warning(foo, bar)")
   end
 
+  test "Timex.now -> DateTime.utc_now/now!" do
+    assert_style("Timex.now()", "DateTime.utc_now()")
+    assert_style(~S|Timex.now("Some/Timezone")|, ~S|DateTime.now!("Some/Timezone")|)
+  end
+
+  test "Timex.today -> Date.utc_today" do
+    assert_style("Timex.today()", "Date.utc_today()")
+    assert_style(~S|Timex.today("Some/Timezone")|, ~S|Timex.today("Some/Timezone")|)
+  end
+
+  if Version.match?(System.version(), ">= 1.15.0-dev") do
+    test "{DateTime,NaiveDateTime,Time,Date}.compare to {DateTime,NaiveDateTime,Time,Date}.before?" do
+      assert_style("DateTime.compare(foo, bar) == :lt", "DateTime.before?(foo, bar)")
+      assert_style("NaiveDateTime.compare(foo, bar) == :lt", "NaiveDateTime.before?(foo, bar)")
+      assert_style("Time.compare(foo, bar) == :lt", "Time.before?(foo, bar)")
+      assert_style("Date.compare(foo, bar) == :lt", "Date.before?(foo, bar)")
+    end
+
+    test "{DateTime,NaiveDateTime,Time,Date}.compare to {DateTime,NaiveDateTime,Time,Date}.after?" do
+      assert_style("DateTime.compare(foo, bar) == :gt", "DateTime.after?(foo, bar)")
+      assert_style("NaiveDateTime.compare(foo, bar) == :gt", "NaiveDateTime.after?(foo, bar)")
+      assert_style("Time.compare(foo, bar) == :gt", "Time.after?(foo, bar)")
+      assert_style("Time.compare(foo, bar) == :gt", "Time.after?(foo, bar)")
+    end
+  end
+
   describe "def / defp" do
     test "0-arity functions have parens removed" do
       assert_style(Styler.Style.SingleNode, "def foo(), do: :ok", "def foo, do: :ok")

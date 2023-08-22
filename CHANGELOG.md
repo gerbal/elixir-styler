@@ -2,6 +2,33 @@
 
 ## main
 
+## v0.8.4
+
+### Fixes
+
+* Timex related fixes (#66):
+  * Rewrite `Timex.now/1` to `DateTime.now!/1` instead of `DateTime.utc_now/1`
+  * Only rewrite `Timex.today/0`, don't change `Timex.today/1`
+
+## v0.8.3
+
+### Improvements
+
+* DateTime rewrites (#62, ht @milmazz)
+  * `DateTime.compare` => `DateTime.{before/after}` (elixir >= 1.15)
+  * `Timex.now` => `DateTime.utc_now`
+  * `Timex.today` => `Date.utc_today`
+
+### Fixes
+
+* Pipes: add  `!=`, `!==`, `===`, `and`, and `or` to list of valid infix operators (#64)
+
+## v0.8.2
+
+### Fixes
+
+* Pipes always de-sugars keyword lists when unpiping them (#60)
+
 ## v0.8.1
 
 ### Fixes
