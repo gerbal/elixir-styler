@@ -153,7 +153,7 @@ defmodule Styler.Style.DefsTest do
         ), do: :ok
         """,
         """
-        def foo, do: :ok
+        def foo(), do: :ok
 
         # Long long is too long
         def foo(too, long), do: :ok

@@ -518,7 +518,7 @@ defmodule Styler.Style.PipesTest do
         end
         """,
         """
-        def foo do
+        def foo() do
           filename_map = Map.new(foo, &{&1.filename, true})
         end
         """
@@ -564,7 +564,6 @@ defmodule Styler.Style.PipesTest do
 
   describe "Timex.now/0,1" do
     test "Timex.now/1 => DateTime.now!/1" do
-
       assert_style(
         """
         timezone
