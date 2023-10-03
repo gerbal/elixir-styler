@@ -10,7 +10,7 @@
 
 defmodule Styler.Style.ModuleDirectivesTest do
   @moduledoc false
-  use Styler.StyleCase, async: true
+  use Styler.StyleCase, style: Styler.Style.ModuleDirectives, async: true
 
   describe "defmodule features" do
     test "handles module with no directives" do

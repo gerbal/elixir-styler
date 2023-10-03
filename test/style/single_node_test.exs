@@ -9,7 +9,7 @@
 # governing permissions and limitations under the License.
 
 defmodule Styler.Style.SingleNodeTest do
-  use Styler.StyleCase, async: true
+  use Styler.StyleCase, style: Styler.Style.SingleNode, async: true
 
   test "charlist literals: rewrites single quote charlists to ~c" do
     assert_style("'foo'", ~s|~c"foo"|)
