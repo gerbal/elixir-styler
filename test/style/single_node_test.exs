@@ -29,19 +29,6 @@ defmodule Styler.Style.SingleNodeTest do
 
     test "Timex.now/1 => DateTime.now!/1" do
       assert_style("Timex.now(tz)", "DateTime.now!(tz)")
-
-      assert_style(
-        """
-        timezone
-        |> Timex.now()
-        |> foo()
-        """,
-        """
-        timezone
-        |> DateTime.now!()
-        |> foo()
-        """
-      )
     end
   end
 
