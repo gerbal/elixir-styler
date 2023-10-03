@@ -25,13 +25,13 @@ defmodule Styler do
   ]
 
   @doc false
-  def style({ast, comments}, file, opts) do
+  def style({ast, comments}, styles \\ @styles, file, opts) do
     on_error = opts[:on_error] || :log
     zipper = Zipper.zip(ast)
     context = %{comments: comments, file: file}
 
     {{ast, _}, %{comments: comments}} =
-      Enum.reduce(@styles, {zipper, context}, fn style, {zipper, context} ->
+      Enum.reduce(styles, {zipper, context}, fn style, {zipper, context} ->
         try do
           Zipper.traverse_while(zipper, context, &style.run/2)
         rescue
@@ -57,11 +57,12 @@ defmodule Styler do
   @impl Mix.Tasks.Format
   def format(input, formatter_opts, opts \\ []) do
     file = formatter_opts[:file]
+    styles = Keyword.get(formatter_opts, :styles, @styles)
 
     {ast, comments} =
       input
       |> string_to_quoted_with_comments(to_string(file))
-      |> style(file, opts)
+      |> style(styles, file, opts)
 
     quoted_to_string(ast, comments, formatter_opts)
   end
@@ -93,4 +94,8 @@ defmodule Styler do
 
     IO.iodata_to_binary([formatted, ?\n])
   end
+
+  @doc false
+  # Expose the canonical list of styles for testing
+  def styles, do: @styles
 end
