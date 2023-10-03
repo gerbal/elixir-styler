@@ -11,12 +11,17 @@
 defmodule Styler.StyleCase do
   @moduledoc """
   Helpers around testing Style rules.
+
+  Can be used to test a single rule or a combination of rules via the `style`
+  option. By default it will test all rules.
   """
   use ExUnit.CaseTemplate
 
-  using do
+  using options do
     quote do
-      import unquote(__MODULE__), only: [assert_style: 1, assert_style: 2, style: 1]
+      import unquote(__MODULE__), only: [assert_style: 1, assert_style: 2, style: 2]
+
+      defp styles, do: List.wrap(unquote(options[:style] || Styler.styles()))
     end
   end
 
@@ -25,9 +30,10 @@ defmodule Styler.StyleCase do
 
     quote bind_quoted: [before: before, expected: expected] do
       expected = String.trim(expected)
-      {styled_ast, styled, styled_comments} = style(before)
+      {styled_ast, styled, styled_comments} = style(before, styles())
 
       if styled != expected and ExUnit.configuration()[:trace] do
+        IO.inspect(styles(), label: "\nStyles")
         IO.puts("\n======Given=============\n")
         IO.puts(before)
         {before_ast, before_comments} = Styler.string_to_quoted_with_comments(before)
@@ -49,9 +55,9 @@ defmodule Styler.StyleCase do
     end
   end
 
-  def style(code) do
+  def style(code, styles) do
     {ast, comments} = Styler.string_to_quoted_with_comments(code)
-    {styled_ast, comments} = Styler.style({ast, comments}, "testfile", on_error: :raise)
+    {styled_ast, comments} = Styler.style({ast, comments}, styles, "testfile", on_error: :raise)
 
     try do
       styled_code = styled_ast |> Styler.quoted_to_string(comments) |> String.trim_trailing("\n")

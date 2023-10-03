@@ -9,7 +9,7 @@
 # governing permissions and limitations under the License.
 
 defmodule Styler.Style.PipesTest do
-  use Styler.StyleCase, async: true
+  use Styler.StyleCase, style: Styler.Style.Pipes, async: true
 
   describe "big picture" do
     test "doesn't modify valid pipe" do
@@ -518,7 +518,7 @@ defmodule Styler.Style.PipesTest do
         end
         """,
         """
-        def foo do
+        def foo() do
           filename_map = Map.new(foo, &{&1.filename, true})
         end
         """
@@ -557,6 +557,23 @@ defmodule Styler.Style.PipesTest do
         a
         |> Enum.map(b)
         |> Map.new(c)
+        """
+      )
+    end
+  end
+
+  describe "Timex.now/0,1" do
+    test "Timex.now/1 => DateTime.now!/1" do
+      assert_style(
+        """
+        timezone
+        |> Timex.now()
+        |> foo()
+        """,
+        """
+        timezone
+        |> DateTime.now!()
+        |> foo()
         """
       )
     end

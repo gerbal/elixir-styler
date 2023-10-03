@@ -9,7 +9,7 @@
 # governing permissions and limitations under the License.
 
 defmodule Styler.Style.SingleNodeTest do
-  use Styler.StyleCase, async: true
+  use Styler.StyleCase, style: Styler.Style.SingleNode, async: true
 
   test "charlist literals: rewrites single quote charlists to ~c" do
     assert_style("'foo'", ~s|~c"foo"|)
@@ -29,19 +29,6 @@ defmodule Styler.Style.SingleNodeTest do
 
     test "Timex.now/1 => DateTime.now!/1" do
       assert_style("Timex.now(tz)", "DateTime.now!(tz)")
-
-      assert_style(
-        """
-        timezone
-        |> Timex.now()
-        |> foo()
-        """,
-        """
-        timezone
-        |> DateTime.now!()
-        |> foo()
-        """
-      )
     end
   end
 

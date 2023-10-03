@@ -29,9 +29,23 @@ And that's it! Now when you run `mix format` you'll also get the benefits of Sty
 
 ### Configuration
 
-There isn't any! This is intentional.
+There isn't much! This is intentional.
 
 Styler is @adobe's internal Style Guide Enforcer - allowing exceptions to the styles goes against that ethos. Happily, it's open source and thus yours to do with as you will =)
+
+That said, this Project supports minimal configuration. You can configure, broadly, which styles you would like run on `mix format` by adding a `styles` key to your `.formatter.exs` file. By default all styles are run.
+
+```elixir
+# .formatter.exs
+[
+  styles: [
+    Styler.Style.ModuleDirectives,
+    Styler.Style.Pipes,
+    Styler.Style.SingleNode,
+    Styler.Style.Defs
+  ]
+]
+```
 
 ## Features (or as we call them, "Styles")
 
